@@ -1,0 +1,33 @@
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.not-found h1 {
+  font-size: 120px;
+  color: #4f46e5;
+  margin: 0;
+  font-weight: bold;
+}
+
+.not-found h2 {
+  font-size: 32px;
+  color: #1e293b;
+  margin: 16px 0;
+}
+
+.not-found p {
+  color: #64748b;
+  font-size: 18px;
+  margin-bottom: 32px;
+}
+
+.not-found .btn {
+  text-decoration: none;
+}
+
