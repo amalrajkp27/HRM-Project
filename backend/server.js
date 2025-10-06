@@ -41,6 +41,7 @@ app.use(errorHandler);
 
 // Server listen
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+const HOST = '0.0.0.0'; // Required for Render
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server is running on ${HOST}:${PORT}`);
 });
