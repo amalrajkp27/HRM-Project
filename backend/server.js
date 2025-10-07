@@ -30,6 +30,7 @@ app.use(cors());
 app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/ai', require('./src/routes/aiRoutes'));
 app.use('/api/jobs', require('./src/routes/jobRoutes'));
+app.use('/api/applications', require('./src/routes/applicationRoutes'));
 
 // Health check route
 app.get('/health', (req, res) => {

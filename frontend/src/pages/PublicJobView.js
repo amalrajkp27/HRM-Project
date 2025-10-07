@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import ApplicationForm from '../components/ApplicationForm';
 import './PublicJobView.css';
 
 const PublicJobView = () => {
@@ -8,6 +9,7 @@ const PublicJobView = () => {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -169,7 +171,13 @@ const PublicJobView = () => {
 
         {/* Apply Button */}
         <div className="apply-section">
-          <button className="apply-btn">
+          <button 
+            className="apply-btn" 
+            onClick={() => {
+              console.log('Apply button clicked!');
+              setShowApplicationForm(true);
+            }}
+          >
             🚀 Apply for this Position
           </button>
           <p className="apply-hint">Click to submit your application</p>
@@ -223,7 +231,13 @@ const PublicJobView = () => {
 
         {/* Footer Apply Button */}
         <div className="apply-section footer-apply">
-          <button className="apply-btn">
+          <button 
+            className="apply-btn" 
+            onClick={() => {
+              console.log('Footer Apply button clicked!');
+              setShowApplicationForm(true);
+            }}
+          >
             🚀 Apply Now
           </button>
           <p className="apply-hint">Don't miss this opportunity!</p>
@@ -236,6 +250,24 @@ const PublicJobView = () => {
         </div>
       </div>
     </div>
+
+    {/* Application Form Modal */}
+    {showApplicationForm && (
+      <>
+        {console.log('Rendering ApplicationForm modal', { jobId, jobTitle: job.jobTitle })}
+        <ApplicationForm
+          jobId={jobId}
+          jobTitle={job.jobTitle}
+          onClose={() => {
+            console.log('Closing application form');
+            setShowApplicationForm(false);
+          }}
+          onSuccess={() => {
+            console.log('Application submitted successfully');
+          }}
+        />
+      </>
+    )}
     </>
   );
 };

@@ -13,6 +13,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import JobPosting from './pages/JobPosting';
 import PublicJobView from './pages/PublicJobView';
+import Applicants from './pages/Applicants';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -36,6 +37,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <JobPosting />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/applicants"
+              element={
+                <PrivateRoute>
+                  <Applicants />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/applicants/job/:jobId"
+              element={
+                <PrivateRoute>
+                  <Applicants />
                 </PrivateRoute>
               }
             />

@@ -246,8 +246,7 @@ const JobPosting = () => {
   };
 
   const handleViewApplicants = (jobId) => {
-    // TODO: Implement view applicants functionality (future feature)
-    toast.info('Applicant tracking feature coming soon!');
+    navigate(`/applicants/job/${jobId}`);
   };
 
   return (

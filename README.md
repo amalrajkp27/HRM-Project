@@ -34,19 +34,19 @@ This HRM system is designed to streamline and automate human resource management
   - Role assignment
   - User status management (active/inactive)
 
-- **Job Posting Module** ✨ NEW
+- **Job Posting Module** ✨ 
   - Job posting creation form with comprehensive fields
   - Job listings with filtering capabilities
   - Filter by Department, Status, and Employment Type
   - Search functionality for job titles
   - Job cards displaying key information
-  - Sample data with 3 job postings
   - Action buttons: View Details, View Applicants, Edit, Delete
   - Tab-based interface (List View / Create New)
   - Responsive design with professional UI
   - Status badges (Active/Closed/Draft)
   - Form validation for required fields
   - Draft and Publish options
+  - Full CRUD operations with MongoDB backend
   - **AI-Powered Job Description Generator** 🤖
     - Generate comprehensive job descriptions with 7 required fields
     - Powered by Google Gemini AI (gemini-2.0-flash-exp model)
@@ -65,14 +65,68 @@ This HRM system is designed to streamline and automate human resource management
     - Beautiful modal UI with platform icons
     - Public job view page (no authentication required)
     - Mobile responsive design
-  - **Google for Jobs Integration** 🔍 ✨ LATEST
+  - **Google for Jobs Integration** 🔍
     - Structured data (JSON-LD) for Google indexing
     - Jobs appear in Google search results automatically
     - SEO meta tags for better visibility
     - Open Graph and Twitter Card support
     - Zero cost, massive reach
     - Automatic generation for all jobs
-  - *Note: Backend API integration for CRUD operations pending*
+
+- **Application Tracking System (ATS)** 🎯 ✨ NEW
+  - **Candidate Application Portal**
+    - Professional application form with resume upload
+    - Support for PDF, DOC, DOCX formats (max 5MB)
+    - Personal information collection (name, email, phone)
+    - Professional details (current company, experience, salary expectations)
+    - Cover letter support (up to 2000 characters)
+    - LinkedIn and portfolio URL fields
+    - Notice period selection
+    - Real-time form validation
+    - Duplicate application prevention
+    - Mobile-responsive design
+  - **Resume Management**
+    - Cloud storage integration with Cloudinary
+    - Secure file upload with validation
+    - Direct resume download/view
+    - File metadata tracking (size, type, upload date)
+  - **Applicant Dashboard for Recruiters**
+    - View all applications across all jobs
+    - Filter by job position
+    - Filter by application status
+    - Real-time statistics dashboard
+    - Application count by status
+    - Recent applications feed
+  - **Application Management**
+    - Detailed applicant profiles
+    - 6-stage application workflow:
+      - Pending → Reviewing → Shortlisted → Interview Scheduled → Rejected/Hired
+    - Status update with one click
+    - 5-star rating system for candidates
+    - Internal notes system for recruiters
+    - Application timeline tracking
+    - Bulk actions support
+  - **Advanced Features**
+    - Email validation and duplicate detection
+    - IP address tracking for security
+    - Application source tracking (direct, LinkedIn, Indeed, referral)
+    - Automatic applicant count updates
+    - Application deadline enforcement
+    - MongoDB indexing for fast queries
+    - RESTful API with comprehensive endpoints
+  - **Email Notification System** 📧 ✨ NEW
+    - Automated email notifications to candidates
+    - Professional HTML email templates
+    - Status-based email triggers:
+      - Application received confirmation
+      - Application under review notification
+      - Shortlisted congratulations email
+      - Interview scheduled notification
+      - Rejection notification (professional & respectful)
+      - Job offer congratulations email
+    - Support for multiple email services (Gmail, SendGrid, Custom SMTP)
+    - Non-blocking email sending (doesn't delay API responses)
+    - Customizable company branding in emails
 
 ### 🚀 Upcoming Features
 
@@ -244,6 +298,44 @@ MONGODB_URI=mongodb://localhost:27017/hrm_database
 # IMPORTANT: Change this secret in production
 JWT_SECRET=your_secure_secret_key_here
 
+# AI Configuration (for Job Description Generator)
+GEMINI_API_KEY=your_gemini_api_key_here
+# Get your free API key at: https://makersuite.google.com/app/apikey
+
+# Cloud Storage Configuration (for Resume Upload)
+# Get these from: https://cloudinary.com/console
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Email Configuration (for Application Notifications)
+# Choose email service: 'gmail', 'sendgrid', or 'smtp'
+EMAIL_SERVICE=gmail
+
+# Gmail Configuration (Recommended for testing)
+# 1. Enable 2-Factor Authentication on your Gmail account
+# 2. Generate App Password at: https://myaccount.google.com/apppasswords
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-16-digit-app-password
+
+# SendGrid Configuration (Alternative - for production)
+# Get API key at: https://app.sendgrid.com/settings/api_keys
+# SENDGRID_API_KEY=your-sendgrid-api-key
+
+# Custom SMTP Configuration (Alternative)
+# SMTP_HOST=smtp.example.com
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=your-smtp-username
+# SMTP_PASSWORD=your-smtp-password
+
+# Email Sender Details
+FROM_EMAIL=your-email@gmail.com
+FROM_NAME=HRM Recruitment Team
+
+# Company Details (appears in emails)
+COMPANY_NAME=Your Company Name
+
 # Frontend URL (for CORS)
 FRONTEND_URL=http://localhost:3000
 ```
@@ -269,6 +361,133 @@ REACT_APP_API_URL=http://localhost:5000/api
 2. Create a new cluster
 3. Get your connection string
 4. Replace in `.env`: `MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/hrm_database`
+
+### 📧 Setting Up Email Notifications
+
+The application sends automated emails to candidates when their application status changes. Here's how to set it up:
+
+#### Option 1: Gmail (Recommended for Testing)
+
+1. **Enable 2-Factor Authentication:**
+   - Go to your Google Account settings
+   - Navigate to Security → 2-Step Verification
+   - Enable 2-Step Verification
+
+2. **Generate App Password:**
+   - Visit: https://myaccount.google.com/apppasswords
+   - Select "Mail" and "Other (Custom name)"
+   - Name it "HRM Application"
+   - Click "Generate"
+   - Copy the 16-digit password (remove spaces)
+
+3. **Update .env file:**
+   ```env
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=abcd efgh ijkl mnop  # Your 16-digit app password
+   FROM_EMAIL=your-email@gmail.com
+   FROM_NAME=HRM Recruitment Team
+   COMPANY_NAME=Your Company Name
+   ```
+
+#### Option 2: SendGrid (Recommended for Production)
+
+1. **Create SendGrid Account:**
+   - Sign up at https://sendgrid.com (free tier: 100 emails/day)
+   - Verify your email address
+
+2. **Generate API Key:**
+   - Go to Settings → API Keys
+   - Click "Create API Key"
+   - Choose "Full Access" or "Restricted Access" (with Mail Send permission)
+   - Copy the API key
+
+3. **Update .env file:**
+   ```env
+   EMAIL_SERVICE=sendgrid
+   SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxx
+   FROM_EMAIL=your-verified-email@yourdomain.com
+   FROM_NAME=HRM Recruitment Team
+   COMPANY_NAME=Your Company Name
+   ```
+
+#### Option 3: Custom SMTP
+
+For other email providers (Outlook, Yahoo, custom domain):
+
+```env
+EMAIL_SERVICE=smtp
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-username
+SMTP_PASSWORD=your-password
+FROM_EMAIL=your-email@example.com
+FROM_NAME=HRM Recruitment Team
+COMPANY_NAME=Your Company Name
+```
+
+#### Email Templates
+
+The system automatically sends these emails:
+- ✅ **Application Received** - Sent immediately when candidate applies
+- 👀 **Under Review** - When recruiter changes status to "Reviewing"
+- 🎉 **Shortlisted** - When candidate is shortlisted
+- 📅 **Interview Scheduled** - When interview is scheduled
+- 📧 **Rejected** - Professional rejection notification
+- 🎊 **Job Offer** - Congratulations on being hired
+
+All emails are professionally designed with HTML templates and your company branding.
+
+#### Testing Email Functionality
+
+After configuring your email credentials, test the system:
+
+1. **Start the backend server:**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+2. **Watch for detailed email logs in the terminal:**
+   ```
+   🎯 Triggering confirmation email for: John Doe (john@example.com)
+   
+   📧 ===== EMAIL SENDING STARTED =====
+   📬 To: john@example.com
+   📝 Subject: Application Received - Software Engineer
+   🔧 Email Service: gmail
+   👤 From: "HRM Recruitment Team" <your-email@gmail.com>
+   ⏳ Sending email...
+   ✅ EMAIL SENT SUCCESSFULLY!
+   📨 Message ID: <unique-message-id>
+   📧 ===== EMAIL SENDING COMPLETED =====
+   ```
+
+3. **Test scenarios:**
+   - Submit a job application → Check for confirmation email
+   - Change application status to "Reviewing" → Check for review email
+   - Change status to "Shortlisted" → Check for shortlist email
+   - Change status to "Interview Scheduled" → Check for interview email
+   - Change status to "Hired" or "Rejected" → Check for final email
+
+4. **Email logs indicate:**
+   - ✅ **Green checkmarks** = Email sent successfully
+   - ❌ **Red X marks** = Email failed (check error details)
+   - 📧 **Detailed info** = Recipient, subject, service used
+   - 📨 **Message ID** = Unique identifier for tracking
+
+5. **Common issues:**
+   - If email fails with "Invalid login" → Check App Password is correct
+   - If no logs appear → Email credentials missing in `.env`
+   - Emails in spam folder → Normal for testing, mark as "Not Spam"
+
+#### Email Delivery Notes
+
+- Emails are sent **asynchronously** (non-blocking) - API responds immediately
+- Failed emails are logged but don't stop the application
+- Check backend terminal for real-time email status
+- For production, consider using SendGrid for better deliverability
 
 ## 🏃 Running the Application
 
@@ -379,6 +598,165 @@ Response:
 }
 ```
 
+### Job Posting Endpoints
+
+#### Create Job
+```http
+POST /api/jobs
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "jobTitle": "Senior Software Engineer",
+  "department": "IT",
+  "location": "San Francisco, CA",
+  "employmentType": "Full-time",
+  "experienceLevel": "Senior",
+  "salaryRange": "$120,000 - $150,000",
+  "jobDescription": "We are seeking...",
+  "responsibilities": "- Lead development...",
+  "requirements": "- 5+ years experience...",
+  "skills": "React, Node.js, MongoDB",
+  "benefits": "Health insurance, 401k...",
+  "applicationDeadline": "2024-12-31"
+}
+```
+
+#### Get All Jobs
+```http
+GET /api/jobs
+Authorization: Bearer {token}
+```
+
+#### Get Public Job (No Auth Required)
+```http
+GET /api/jobs/public/:id
+```
+
+#### Update Job
+```http
+PUT /api/jobs/:id
+Authorization: Bearer {token}
+```
+
+#### Delete Job
+```http
+DELETE /api/jobs/:id
+Authorization: Bearer {token}
+```
+
+### Application Endpoints
+
+#### Submit Application (Public - No Auth Required)
+```http
+POST /api/applications/apply/:jobId
+Content-Type: multipart/form-data
+
+Form Data:
+- firstName: string
+- lastName: string
+- email: string
+- phone: string
+- resume: file (PDF, DOC, DOCX - max 5MB)
+- coverLetter: string (optional)
+- linkedinUrl: string (optional)
+- portfolioUrl: string (optional)
+- currentCompany: string (optional)
+- yearsOfExperience: number (optional)
+- expectedSalary: string (optional)
+- noticePeriod: string (optional)
+
+Response:
+{
+  "success": true,
+  "message": "Application submitted successfully!",
+  "data": {
+    "applicationId": "...",
+    "appliedAt": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+#### Get All Applications
+```http
+GET /api/applications
+Authorization: Bearer {token}
+Query Parameters:
+- status: pending|reviewing|shortlisted|interview-scheduled|rejected|hired
+- jobId: string
+- page: number
+- limit: number
+```
+
+#### Get Applications by Job
+```http
+GET /api/applications/job/:jobId
+Authorization: Bearer {token}
+```
+
+#### Get Application by ID
+```http
+GET /api/applications/:id
+Authorization: Bearer {token}
+```
+
+#### Update Application Status
+```http
+PUT /api/applications/:id/status
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "status": "shortlisted"
+}
+```
+
+#### Rate Application
+```http
+PUT /api/applications/:id/rating
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "rating": 5
+}
+```
+
+#### Add Note to Application
+```http
+POST /api/applications/:id/notes
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "content": "Great candidate, schedule interview"
+}
+```
+
+#### Get Application Statistics
+```http
+GET /api/applications/stats/overview
+Authorization: Bearer {token}
+```
+
+### AI Endpoints
+
+#### Generate Job Description
+```http
+POST /api/ai/generate-job-description
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "jobPosition": "Software Engineer",
+  "experience": "Mid-level",
+  "department": "IT",
+  "location": "Remote",
+  "employmentType": "Full-time",
+  "salaryRange": "$80,000 - $100,000"
+}
+```
+
 ## 👥 User Roles
 
 The system supports four user roles with different access levels:
@@ -483,6 +861,30 @@ The system supports four user roles with different access levels:
    - Ensure `JWT_SECRET` is set in `.env`
    - Check token expiration (default: 30 days)
 
+5. **Email Not Sending**
+   - **Check backend terminal logs** for detailed error messages
+   - **"Invalid login" error:**
+     - Verify you're using Gmail **App Password**, not regular password
+     - Ensure 2-Factor Authentication is enabled on Gmail
+     - Generate a new App Password if needed
+   - **No email logs appearing:**
+     - Check `.env` file has all email variables set
+     - Restart backend server after updating `.env`
+     - Verify `EMAIL_SERVICE=gmail` is set
+   - **Emails going to spam:**
+     - Normal for testing with Gmail
+     - Ask recipients to mark as "Not Spam"
+     - For production, use SendGrid with verified domain
+   - **"Connection timeout" error:**
+     - Check your internet connection
+     - Verify firewall isn't blocking SMTP (port 587)
+     - Try using SendGrid instead of Gmail
+
+6. **Resume Upload Issues**
+   - Verify Cloudinary credentials in `.env`
+   - Check file size is under 5MB
+   - Ensure file format is PDF, DOC, DOCX, or ODT
+
 ## 📦 Dependencies
 
 ### Backend Dependencies
@@ -492,6 +894,10 @@ The system supports four user roles with different access levels:
 - `bcryptjs` - Password hashing
 - `jsonwebtoken` - JWT authentication
 - `cors` - CORS middleware
+- `multer` - File upload handling
+- `cloudinary` - Cloud storage for resumes
+- `nodemailer` - Email sending (supports Gmail, SendGrid, SMTP)
+- `@google/generative-ai` - AI-powered job description generation
 
 ### Frontend Dependencies
 - `react` - UI library
@@ -506,21 +912,62 @@ The system supports four user roles with different access levels:
 After setting up the project, you can start implementing features in this order:
 
 1. ✅ Authentication System (Completed)
-2. ✅ Job Posting Module - UI (Completed)
-3. 🔄 Job Posting Module - Backend API (In Progress)
-4. 📝 Employee Management Module
-5. 📅 Leave Management System
-6. ⏰ Attendance Tracking
-7. 💰 Payroll Management
-8. 🏢 Department Management
-9. 📊 Reports & Analytics
-10. 📱 Responsive Design Enhancements
-11. 🔔 Notification System
-12. 📧 Email Integration
+2. ✅ Job Posting Module (Completed)
+3. ✅ Application Tracking System (Completed)
+4. ✅ Resume Upload & Cloud Storage (Completed)
+5. ✅ Email Notification System (Completed)
+6. ✅ AI Job Description Generator (Completed)
+7. 📝 Employee Management Module
+8. 📅 Leave Management System
+9. ⏰ Attendance Tracking
+10. 💰 Payroll Management
+11. 🏢 Department Management
+12. 📊 Reports & Analytics
+13. 📱 Responsive Design Enhancements
 
 ## 📝 Change Log
 
 ### Latest Updates
+
+#### Email Notification System 📧 (Added: October 2024)
+
+**Major Feature Implementation:**
+- ✅ Automated email notifications for application status changes
+- ✅ 6 professional HTML email templates
+- ✅ Support for Gmail, SendGrid, and custom SMTP
+- ✅ Non-blocking asynchronous email sending
+- ✅ Detailed logging for debugging and monitoring
+
+**Email Templates:**
+- Application Received (confirmation)
+- Under Review (status update)
+- Shortlisted (congratulations)
+- Interview Scheduled (notification)
+- Rejected (professional & respectful)
+- Job Offer (congratulations & welcome)
+
+**Implementation:**
+- ✅ Created `emailService.js` with template engine
+- ✅ Integrated with `applicationController.js`
+- ✅ Added detailed logging for email tracking
+- ✅ Environment configuration for multiple providers
+- ✅ Error handling and graceful failures
+
+**Technical Details:**
+- Uses `nodemailer` for email delivery
+- HTML emails with inline CSS and gradients
+- Mobile-responsive email design
+- Company branding customization
+- Message ID tracking for delivery confirmation
+
+**Files Created/Modified:**
+- `backend/src/services/emailService.js` (NEW)
+- `backend/src/controllers/applicationController.js` (Updated)
+- `.env` (Added email configuration)
+- `EMAIL_SETUP_GUIDE.md` (NEW - Setup instructions)
+- `EMAIL_FEATURE_IMPLEMENTATION.md` (NEW - Technical documentation)
+
+---
 
 #### Google for Jobs Integration 🔍 (Added: October 2024)
 
@@ -934,6 +1381,61 @@ After setting up the project, you can start implementing features in this order:
 
 ISC
 
+## 🚀 Deployment Guide
+
+### Backend Deployment (Render)
+
+1. **Push your code to GitHub**
+2. **Go to [Render](https://render.com) and create a new Web Service**
+3. **Connect your GitHub repository**
+4. **Configure the service:**
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start` or `node server.js`
+   - **Environment:** Node
+
+5. **Add Environment Variables in Render:**
+   - Go to Environment tab
+   - Add all variables from your `.env` file:
+     - `NODE_ENV=production`
+     - `MONGODB_URI=your_mongodb_atlas_connection_string`
+     - `JWT_SECRET=your_secure_secret`
+     - `GEMINI_API_KEY=your_gemini_key`
+     - `CLOUDINARY_CLOUD_NAME=your_cloud_name`
+     - `CLOUDINARY_API_KEY=your_api_key`
+     - `CLOUDINARY_API_SECRET=your_api_secret`
+     - `EMAIL_SERVICE=gmail` (or sendgrid)
+     - `EMAIL_USER=your_email@gmail.com`
+     - `EMAIL_PASSWORD=your_app_password`
+     - `FROM_EMAIL=your_email@gmail.com`
+     - `FROM_NAME=HRM Recruitment Team`
+     - `COMPANY_NAME=Your Company Name`
+     - `FRONTEND_URL=https://your-frontend-url.vercel.app`
+
+6. **Deploy!** Render will automatically deploy your backend
+
+### Frontend Deployment (Vercel)
+
+1. **Go to [Vercel](https://vercel.com) and import your project**
+2. **Configure the project:**
+   - **Root Directory:** `frontend`
+   - **Framework Preset:** Create React App
+   - **Build Command:** `npm run build` (auto-detected)
+   - **Output Directory:** `build` (auto-detected)
+
+3. **Add Environment Variable:**
+   - Go to Settings → Environment Variables
+   - Add: `REACT_APP_API_URL=https://your-backend-url.onrender.com/api`
+
+4. **Deploy!** Vercel will automatically deploy your frontend
+
+### Important Deployment Notes
+
+- **MongoDB Atlas:** Ensure your IP whitelist includes `0.0.0.0/0` for cloud deployments
+- **CORS:** Update `FRONTEND_URL` in backend `.env` to your Vercel URL
+- **Email Service:** For production, consider using SendGrid instead of Gmail
+- **SSL/HTTPS:** Both Render and Vercel provide free SSL certificates
+
 ## 👨‍💻 Author
 
 Your Name
@@ -948,4 +1450,78 @@ Your Name
 - Implement rate limiting
 - Add input sanitization
 - Set up monitoring and logging
+- Use professional email service (SendGrid) for production
+- Monitor email delivery rates and bounce rates
+
+---
+
+## 📋 Quick Reference
+
+### Email Configuration Quick Check
+
+✅ **Is email working?** Check these:
+
+1. **Environment Variables Set?**
+   ```bash
+   # Check your .env file has:
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=your-16-digit-app-password
+   FROM_EMAIL=your-email@gmail.com
+   FROM_NAME=HRM Recruitment Team
+   COMPANY_NAME=Your Company Name
+   ```
+
+2. **Gmail App Password Generated?**
+   - Enable 2FA: https://myaccount.google.com/security
+   - Generate App Password: https://myaccount.google.com/apppasswords
+
+3. **Backend Running?**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+4. **Check Logs?**
+   - Look for `📧 ===== EMAIL SENDING STARTED =====` in terminal
+   - Green ✅ = Success
+   - Red ❌ = Failed (check error message)
+
+5. **Test Email?**
+   - Submit a job application
+   - Check candidate's email inbox (and spam folder)
+
+### Email Log Examples
+
+**Success:**
+```
+🎯 Triggering confirmation email for: John Doe (john@example.com)
+📧 ===== EMAIL SENDING STARTED =====
+✅ EMAIL SENT SUCCESSFULLY!
+```
+
+**Failure:**
+```
+❌ ===== EMAIL SENDING FAILED =====
+❌ Error: Invalid login: 535-5.7.8 Username and Password not accepted
+```
+
+### Common Email Errors & Fixes
+
+| Error | Fix |
+|-------|-----|
+| "Invalid login" | Use App Password, not regular password |
+| "Connection timeout" | Check internet, firewall, or use SendGrid |
+| No logs appearing | Check `.env` has email variables, restart backend |
+| Emails in spam | Normal for testing, mark as "Not Spam" |
+
+### Key Files for Email Feature
+
+- **Service:** `backend/src/services/emailService.js`
+- **Controller:** `backend/src/controllers/applicationController.js`
+- **Config:** `.env` (root directory)
+- **Setup Guide:** `EMAIL_SETUP_GUIDE.md`
+- **Documentation:** `EMAIL_FEATURE_IMPLEMENTATION.md`
+
+---
 
