@@ -11,7 +11,8 @@ const {
   addApplicationNote,
   rateApplication,
   deleteApplication,
-  getApplicationStats
+  getApplicationStats,
+  getJobApplicationStats
 } = require('../controllers/applicationController');
 
 // Public routes
@@ -22,6 +23,7 @@ router.use(protect);
 
 router.get('/', getAllApplications);
 router.get('/stats/overview', getApplicationStats);
+router.get('/stats/job/:jobId', getJobApplicationStats);
 router.get('/job/:jobId', getApplicationsByJob);
 router.get('/:id', getApplicationById);
 router.put('/:id/status', updateApplicationStatus);

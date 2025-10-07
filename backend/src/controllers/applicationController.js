@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const { uploadToCloudinary } = require('../config/cloudinary');
@@ -478,6 +479,55 @@ const getApplicationStats = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get application statistics for a specific job
+ * @route   GET /api/applications/stats/job/:jobId
+ * @access  Private (Recruiter only)
+ */
+const getJobApplicationStats = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    // Get total applications for this job
+    const totalApplications = await Application.countDocuments({ job: jobId });
+    
+    // Get status counts for this job
+    const statusCounts = await Application.aggregate([
+      {
+        $match: { job: mongoose.Types.ObjectId(jobId) }
+      },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get recent applications for this job
+    const recentApplications = await Application.find({ job: jobId })
+      .sort('-appliedAt')
+      .limit(5)
+      .populate('job', 'jobTitle department');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        total: totalApplications,
+        byStatus: statusCounts,
+        recent: recentApplications
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching job application stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch job application statistics'
+    });
+  }
+};
+
 module.exports = {
   submitApplication,
   getApplicationsByJob,
@@ -487,5 +537,6 @@ module.exports = {
   addApplicationNote,
   rateApplication,
   deleteApplication,
-  getApplicationStats
+  getApplicationStats,
+  getJobApplicationStats
 };

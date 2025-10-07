@@ -39,7 +39,12 @@ const Applicants = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/applications/stats/overview');
+      // Use job-specific stats if viewing a specific job, otherwise use overview stats
+      const endpoint = jobId 
+        ? `/applications/stats/job/${jobId}`
+        : '/applications/stats/overview';
+      
+      const response = await api.get(endpoint);
       if (response.data.success) {
         setStats(response.data.data);
       }
