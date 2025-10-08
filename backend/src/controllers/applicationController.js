@@ -3,6 +3,7 @@ const Application = require('../models/Application');
 const Job = require('../models/Job');
 const { uploadToCloudinary } = require('../config/cloudinary');
 const { sendApplicationReceivedEmail, sendApplicationStatusEmail } = require('../services/emailService');
+const { generateInterviewToken, generateInterviewQuestions } = require('../services/interviewService');
 
 /**
  * @desc    Submit a job application
@@ -96,20 +97,69 @@ const submitApplication = async (req, res) => {
     job.applicants = (job.applicants || 0) + 1;
     await job.save();
 
-    // Send confirmation email to candidate (non-blocking)
-    console.log(`\n🎯 Triggering confirmation email for: ${firstName} ${lastName} (${email})`);
-    sendApplicationReceivedEmail(
-      email,
-      `${firstName} ${lastName}`,
-      job.jobTitle,
-      process.env.COMPANY_NAME || 'Our Company'
-    ).then(result => {
-      if (result.success) {
-        console.log('✅ Confirmation email queued successfully');
-      } else {
-        console.error('❌ Confirmation email failed:', result.error);
+    // Generate interview questions (non-blocking)
+    console.log('\n🎯 Generating interview questions...');
+    generateInterviewQuestions({
+      jobTitle: job.jobTitle,
+      experienceLevel: job.experienceLevel,
+      department: job.department,
+      jobDescription: job.jobDescription,
+      skills: job.skills
+    }).then(async questions => {
+      try {
+        // Generate unique token
+        const interviewToken = generateInterviewToken();
+        
+        // Calculate deadline (72 hours from now)
+        const deadline = new Date();
+        deadline.setHours(deadline.getHours() + 72);
+
+        // Update application with interview
+        application.interview = {
+          token: interviewToken,
+          status: 'pending',
+          deadline: deadline,
+          questions: questions,
+          answers: [],
+          generatedAt: new Date()
+        };
+
+        await application.save();
+        
+        const interviewLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/interview/${interviewToken}`;
+        console.log('✅ Interview generated:', interviewLink);
+
+        // Send confirmation email with interview link
+        console.log(`🎯 Triggering confirmation email for: ${firstName} ${lastName} (${email})`);
+        sendApplicationReceivedEmail(
+          email,
+          `${firstName} ${lastName}`,
+          job.jobTitle,
+          process.env.COMPANY_NAME || 'Our Company',
+          interviewLink,
+          deadline
+        ).then(result => {
+          if (result.success) {
+            console.log('✅ Confirmation email queued successfully');
+          } else {
+            console.error('❌ Confirmation email failed:', result.error);
+          }
+        }).catch(err => console.error('❌ Email sending error:', err));
+
+      } catch (error) {
+        console.error('❌ Error saving interview:', error);
       }
-    }).catch(err => console.error('❌ Email sending error:', err));
+    }).catch(err => {
+      console.error('❌ Error generating questions:', err);
+      // Still send confirmation email without interview link
+      console.log(`🎯 Sending fallback confirmation email for: ${firstName} ${lastName} (${email})`);
+      sendApplicationReceivedEmail(
+        email,
+        `${firstName} ${lastName}`,
+        job.jobTitle,
+        process.env.COMPANY_NAME || 'Our Company'
+      ).catch(err2 => console.error('❌ Email sending error:', err2));
+    });
 
     res.status(201).json({
       success: true,

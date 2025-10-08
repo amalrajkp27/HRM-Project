@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import JobPosting from './pages/JobPosting';
 import PublicJobView from './pages/PublicJobView';
 import Applicants from './pages/Applicants';
+import Interview from './pages/Interview';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -56,8 +57,9 @@ function App() {
                 </PrivateRoute>
               }
             />
-            {/* Public route - no authentication required */}
+            {/* Public routes - no authentication required */}
             <Route path="/jobs/public/:jobId" element={<PublicJobView />} />
+            <Route path="/interview/:token" element={<Interview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer position="top-right" autoClose={3000} />

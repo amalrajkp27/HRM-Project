@@ -38,8 +38,8 @@ const createTransporter = () => {
 
 // Email templates for different application statuses
 const emailTemplates = {
-  received: (candidateName, jobTitle, companyName) => ({
-    subject: `Application Received - ${jobTitle}`,
+  received: (candidateName, jobTitle, companyName, interviewLink = null, deadline = null) => ({
+    subject: interviewLink ? `Complete Your Interview - ${jobTitle}` : `Application Received - ${jobTitle}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -50,6 +50,8 @@ const emailTemplates = {
           .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
           .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .interview-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; }
+          .deadline { color: #dc3545; font-weight: bold; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -61,13 +63,33 @@ const emailTemplates = {
           <div class="content">
             <p>Dear ${candidateName},</p>
             <p>Thank you for applying for the <strong>${jobTitle}</strong> position at <strong>${companyName}</strong>.</p>
-            <p>We have successfully received your application and our recruitment team will review it carefully. We appreciate your interest in joining our team.</p>
+            <p>We have successfully received your application and our recruitment team will review it carefully.</p>
+            
+            ${interviewLink ? `
+            <div class="interview-box">
+              <h3>🎯 Next Step: Complete Your Pre-Screening Interview</h3>
+              <p>To proceed with your application, please complete a short 5-question multiple-choice interview.</p>
+              <p><strong>Important:</strong></p>
+              <ul>
+                <li>5 multiple-choice questions</li>
+                <li><strong>All questions must be answered</strong></li>
+                <li><strong>Minimum 3 correct answers required to pass</strong></li>
+                <li>One-time submission only</li>
+              </ul>
+              <p class="deadline">⏰ Deadline: ${deadline ? new Date(deadline).toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '72 hours'}</p>
+              <center>
+                <a href="${interviewLink}" class="button">🎯 Start Interview Now</a>
+              </center>
+            </div>
+            ` : `
             <p><strong>What happens next?</strong></p>
             <ul>
               <li>Our team will review your application within 3-5 business days</li>
               <li>If your profile matches our requirements, we'll contact you for the next steps</li>
               <li>You'll receive email updates as your application progresses</li>
             </ul>
+            `}
+            
             <p>We wish you the best of luck!</p>
             <p>Best regards,<br><strong>${companyName} Recruitment Team</strong></p>
           </div>
@@ -355,8 +377,16 @@ const sendApplicationStatusEmail = async (candidateEmail, candidateName, jobTitl
 };
 
 // Send application received confirmation
-const sendApplicationReceivedEmail = async (candidateEmail, candidateName, jobTitle, companyName = 'Our Company') => {
-  return await sendApplicationStatusEmail(candidateEmail, candidateName, jobTitle, 'received', companyName);
+const sendApplicationReceivedEmail = async (candidateEmail, candidateName, jobTitle, companyName = 'Our Company', interviewLink = null, deadline = null) => {
+  try {
+    console.log(`\n🔔 Preparing to send "received" email to ${candidateName}`);
+    const { subject, html } = emailTemplates.received(candidateName, jobTitle, companyName, interviewLink, deadline);
+    
+    return await sendEmail(candidateEmail, subject, html);
+  } catch (error) {
+    console.error('❌ Error sending application received email:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 module.exports = {

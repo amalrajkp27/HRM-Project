@@ -133,6 +133,69 @@ const applicationSchema = new mongoose.Schema({
   // IP Address for security
   ipAddress: {
     type: String
+  },
+  
+  // Pre-Screening Interview
+  interview: {
+    // Interview link and status
+    token: {
+      type: String,
+      unique: true,
+      sparse: true // Allows null values to not be unique
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'in-progress', 'completed', 'expired', 'rejected'],
+      default: 'pending'
+    },
+    deadline: Date, // 72 hours from application
+    
+    // Questions
+    questions: [{
+      questionNumber: Number,
+      questionType: {
+        type: String,
+        enum: ['multiple-choice', 'short-answer', 'scenario', 'technical', 'behavioral']
+      },
+      difficulty: {
+        type: String,
+        enum: ['easy', 'medium', 'hard']
+      },
+      questionText: String, // Max 50 words
+      options: [String], // For multiple choice
+      correctAnswer: String, // For multiple choice (stored for reference)
+      maxScore: {
+        type: Number,
+        default: 10
+      }
+    }],
+    
+    // Answers
+    answers: [{
+      questionNumber: Number,
+      answer: String, // Max 200 words for short answer
+      submittedAt: Date,
+      aiScore: Number, // Individual score (0-10)
+      aiFeedback: String, // AI's evaluation
+      strengths: [String],
+      weaknesses: [String]
+    }],
+    
+    // Overall Results
+    overallScore: Number, // 0-100%
+    totalAnswered: Number,
+    passed: Boolean,
+    aiSummary: String, // Overall AI evaluation
+    
+    // Timestamps
+    generatedAt: Date,
+    startedAt: Date,
+    completedAt: Date,
+    expiredAt: Date,
+    reminderSent: {
+      type: Boolean,
+      default: false
+    }
   }
 }, {
   timestamps: true
