@@ -1,7 +1,17 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+// Switch between Gemini and Ollama based on environment variable
+const USE_OLLAMA = process.env.USE_OLLAMA === 'true' || process.env.OLLAMA_BASE_URL;
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+let genAI;
+
+if (USE_OLLAMA) {
+  console.log('🦙 Using Ollama AI Service');
+  const { OllamaAI } = require('./ollamaService');
+  genAI = new OllamaAI(process.env.OLLAMA_BASE_URL);
+} else {
+  console.log('🤖 Using Google Gemini AI Service');
+  const { GoogleGenerativeAI } = require('@google/generative-ai');
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
 
 /**
  * Generate comprehensive job description using Google Gemini AI
@@ -24,8 +34,12 @@ const generateJobDescription = async (
   applicationDeadline = ''
 ) => {
   try {
-    // Get the Gemini model (using gemini-2.0-flash-exp for newer API keys)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    // Get the AI model (Ollama or Gemini based on configuration)
+    const modelName = USE_OLLAMA 
+      ? (process.env.OLLAMA_MODEL || 'llama2')
+      : 'gemini-2.0-flash-exp';
+    
+    const model = genAI.getGenerativeModel({ model: modelName });
 
     // Create detailed prompt
     const prompt = `You are an expert HR professional. Generate a comprehensive, professional job description for the following position:

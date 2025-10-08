@@ -16,13 +16,18 @@ cloudinary.config({
  */
 const uploadToCloudinary = (fileBuffer, fileName, folder = 'hrm-resumes') => {
   return new Promise((resolve, reject) => {
+    // Remove file extension from fileName for public_id
+    const fileNameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+    
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folder,
         resource_type: 'raw', // For non-image files
-        public_id: `${Date.now()}-${fileName.replace(/\s+/g, '-')}`,
-        use_filename: true,
-        unique_filename: true
+        public_id: `${Date.now()}-${fileNameWithoutExt.replace(/\s+/g, '-')}`,
+        // IMPORTANT: Don't use use_filename or unique_filename when setting custom public_id
+        // Otherwise Cloudinary will ignore our public_id and generate its own!
+        use_filename: false,
+        unique_filename: false
       },
       (error, result) => {
         if (error) {

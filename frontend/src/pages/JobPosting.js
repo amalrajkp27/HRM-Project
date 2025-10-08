@@ -14,6 +14,22 @@ const JobPosting = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [jobToShare, setJobToShare] = useState(null);
   const [jobPostings, setJobPostings] = useState([]);
+  const [editingJobId, setEditingJobId] = useState(null); // Track which job is being edited
+  
+  // AI Candidate Matching State
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzingJobId, setAnalyzingJobId] = useState(null);
+  const [bestCandidates, setBestCandidates] = useState(null);
+  const [showBestCandidates, setShowBestCandidates] = useState(false);
+  
+  console.log('JobPosting Component State:', { 
+    analyzing, 
+    analyzingJobId, 
+    bestCandidates: !!bestCandidates, 
+    showBestCandidates,
+    activeTab
+  });
+  
   const [formData, setFormData] = useState({
     jobTitle: '',
     department: '',
@@ -32,6 +48,9 @@ const JobPosting = () => {
   // Fetch jobs on component mount
   useEffect(() => {
     fetchJobs();
+    // Reset modal state on mount to prevent blocking
+    setShowBestCandidates(false);
+    setBestCandidates(null);
   }, []);
 
   // Fetch all jobs from API
@@ -154,11 +173,20 @@ const JobPosting = () => {
     setSubmitting(true);
 
     try {
-      const response = await api.post('/jobs', formData);
+      let response;
+      
+      // Check if we're editing or creating
+      if (editingJobId) {
+        // Update existing job
+        response = await api.put(`/jobs/${editingJobId}`, formData);
+        toast.success('✅ Job updated successfully!');
+      } else {
+        // Create new job
+        response = await api.post('/jobs', formData);
+        toast.success('✅ Job posted successfully!');
+      }
       
       if (response.data.success) {
-        toast.success('✅ Job posted successfully!');
-        
         // Reset form
         setFormData({
           jobTitle: '',
@@ -175,6 +203,9 @@ const JobPosting = () => {
           applicationDeadline: '',
         });
 
+        // Clear editing state
+        setEditingJobId(null);
+
         // Refresh job list
         await fetchJobs();
 
@@ -182,8 +213,8 @@ const JobPosting = () => {
         setActiveTab('list');
       }
     } catch (error) {
-      console.error('Error creating job:', error);
-      toast.error(error.response?.data?.message || 'Failed to create job posting');
+      console.error('Error saving job:', error);
+      toast.error(error.response?.data?.message || `Failed to ${editingJobId ? 'update' : 'create'} job posting`);
     } finally {
       setSubmitting(false);
     }
@@ -193,6 +224,9 @@ const JobPosting = () => {
     // Find the job to edit
     const jobToEdit = jobPostings.find(job => job._id === jobId);
     if (jobToEdit) {
+      // Set editing mode
+      setEditingJobId(jobId);
+      
       // Populate form with job data
       setFormData({
         jobTitle: jobToEdit.jobTitle,
@@ -211,7 +245,7 @@ const JobPosting = () => {
       
       // Switch to create tab (which will act as edit mode)
       setActiveTab('create');
-      toast.info('Edit mode: Update the form and click "Publish Job Posting"');
+      toast.info('✏️ Edit mode: Update the form and click "Update Job Posting"');
     }
   };
 
@@ -247,6 +281,37 @@ const JobPosting = () => {
 
   const handleViewApplicants = (jobId) => {
     navigate(`/applicants/job/${jobId}`);
+  };
+
+  // AI Candidate Matching Handler
+  const handleFindBestCandidates = async (job) => {
+    setAnalyzing(true);
+    setAnalyzingJobId(job._id);
+    
+    try {
+      toast.info(`🤖 Analyzing ${job.applicants} candidates... This may take 1-2 minutes.`);
+      
+      const response = await api.get(`/matching/find-best/${job._id}?topN=3`);
+      
+      if (response.data.success) {
+        setBestCandidates({
+          jobTitle: job.jobTitle,
+          candidates: response.data.data
+        });
+        setShowBestCandidates(true);
+        toast.success(`✨ Found top ${response.data.count} candidates!`);
+      }
+    } catch (error) {
+      console.error('Error finding best candidates:', error);
+      if (error.response?.status === 404) {
+        toast.error(error.response.data.message || 'No applications found for this job');
+      } else {
+        toast.error('Failed to analyze candidates. Please try again.');
+      }
+    } finally {
+      setAnalyzing(false);
+      setAnalyzingJobId(null);
+    }
   };
 
   return (
@@ -392,6 +457,20 @@ const JobPosting = () => {
                     >
                       View Applicants
                     </button>
+                    {console.log('Job applicants:', job.jobTitle, job.applicants)}
+                    {job.applicants > 0 && (
+                      <button
+                        className="action-btn ai-match-btn"
+                        onClick={() => handleFindBestCandidates(job)}
+                        disabled={analyzing && analyzingJobId === job._id}
+                      >
+                        {analyzing && analyzingJobId === job._id ? (
+                          <>⏳ Analyzing...</>
+                        ) : (
+                          <>🎯 Find Best 3</>
+                        )}
+                      </button>
+                    )}
                     <button
                       className="action-btn edit-btn"
                       onClick={() => handleEdit(job._id)}
@@ -636,14 +715,38 @@ const JobPosting = () => {
               </div>
 
               <div className="form-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setActiveTab('list')}>
-                  Cancel
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => {
+                    setActiveTab('list');
+                    setEditingJobId(null); // Clear editing mode
+                    setFormData({ // Reset form
+                      jobTitle: '',
+                      department: '',
+                      location: '',
+                      employmentType: '',
+                      experienceLevel: '',
+                      salaryRange: '',
+                      jobDescription: '',
+                      responsibilities: '',
+                      requirements: '',
+                      skills: '',
+                      benefits: '',
+                      applicationDeadline: '',
+                    });
+                  }}
+                >
+                  {editingJobId ? 'Cancel Edit' : 'Cancel'}
                 </button>
                 <button type="button" className="btn btn-outline">
                   Save as Draft
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? '📤 Publishing...' : '📤 Publish Job Posting'}
+                  {submitting 
+                    ? (editingJobId ? '💾 Updating...' : '📤 Publishing...') 
+                    : (editingJobId ? '💾 Update Job Posting' : '📤 Publish Job Posting')
+                  }
                 </button>
               </div>
             </form>
@@ -657,6 +760,125 @@ const JobPosting = () => {
         onClose={() => setShareModalOpen(false)}
         jobData={jobToShare}
       />
+
+      {/* Best Candidates Modal */}
+      {showBestCandidates && bestCandidates && (
+        <div className="modal-overlay" onClick={() => setShowBestCandidates(false)}>
+          <div className="best-candidates-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🏆 Top 3 Best Candidates</h2>
+              <p className="modal-subtitle">For: {bestCandidates.jobTitle}</p>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowBestCandidates(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="candidates-list">
+              {bestCandidates.candidates.map((item, index) => (
+                <div key={item.applicationId} className="candidate-result-card">
+                  <div className="candidate-rank">
+                    {index === 0 && '🥇'}
+                    {index === 1 && '🥈'}
+                    {index === 2 && '🥉'}
+                    <span className="rank-number">#{index + 1}</span>
+                  </div>
+
+                  <div className="candidate-info-section">
+                    <h3>{item.candidate.name}</h3>
+                    <p className="candidate-meta">
+                      {item.candidate.company} • {item.candidate.experience} years
+                    </p>
+                  </div>
+
+                  <div className="match-score-section">
+                    <div className="score-circle">
+                      <span className="score-number">{item.analysis.matchScore}%</span>
+                      <span className="score-label">Match</span>
+                    </div>
+                    <div className="score-bar-container">
+                      <div 
+                        className="score-bar-fill" 
+                        style={{width: `${item.analysis.matchScore}%`}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="analysis-details">
+                    <div className="detail-section">
+                      <h4>✨ Key Strengths</h4>
+                      <ul>
+                        {item.analysis.strengths.map((strength, i) => (
+                          <li key={i}>{strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {item.analysis.skillsMatched.length > 0 && (
+                      <div className="detail-section">
+                        <h4>🎯 Skills Match</h4>
+                        <div className="skills-tags">
+                          {item.analysis.skillsMatched.map((skill, i) => (
+                            <span key={i} className="skill-tag matched">{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {item.analysis.skillsMissing.length > 0 && (
+                      <div className="detail-section">
+                        <h4>⚠️ Missing Skills</h4>
+                        <div className="skills-tags">
+                          {item.analysis.skillsMissing.map((skill, i) => (
+                            <span key={i} className="skill-tag missing">{skill}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="detail-section">
+                      <h4>💡 Recommendation</h4>
+                      <p className="recommendation-text">{item.analysis.recommendation}</p>
+                      <p className="reasoning-text">{item.analysis.reasoning}</p>
+                    </div>
+                  </div>
+
+                  <div className="candidate-actions">
+                    <button 
+                      className="btn-action primary"
+                      onClick={() => {
+                        setShowBestCandidates(false);
+                        navigate(`/applicants`);
+                      }}
+                    >
+                      View Full Profile
+                    </button>
+                    <button 
+                      className="btn-action secondary"
+                      onClick={() => {
+                        window.location.href = `mailto:${item.candidate.email}`;
+                      }}
+                    >
+                      Contact Candidate
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn-close-modal"
+                onClick={() => setShowBestCandidates(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

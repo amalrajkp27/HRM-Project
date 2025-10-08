@@ -31,6 +31,7 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/ai', require('./src/routes/aiRoutes'));
 app.use('/api/jobs', require('./src/routes/jobRoutes'));
 app.use('/api/applications', require('./src/routes/applicationRoutes'));
+app.use('/api/matching', require('./src/routes/matchingRoutes'));
 
 // Health check route
 app.get('/health', (req, res) => {

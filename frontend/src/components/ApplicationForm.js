@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import api from '../services/api';
 import './ApplicationForm.css';
 
 const ApplicationForm = ({ jobId, jobTitle, onClose, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [parsedData, setParsedData] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,7 +31,47 @@ const ApplicationForm = ({ jobId, jobTitle, onClose, onSuccess }) => {
     });
   };
 
-  const handleFileChange = (e) => {
+  const handleResumeUpload = async (file) => {
+    setParsing(true);
+    
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('resume', file);
+      
+      const response = await api.post('/applications/parse-resume', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        const parsed = response.data.data;
+        
+        // Auto-fill form fields with parsed data
+        setFormData(prev => ({
+          ...prev,
+          firstName: parsed.firstName || prev.firstName,
+          lastName: parsed.lastName || prev.lastName,
+          email: parsed.email || prev.email,
+          phone: parsed.phone || prev.phone,
+          currentCompany: parsed.currentCompany || prev.currentCompany,
+          yearsOfExperience: parsed.yearsOfExperience || prev.yearsOfExperience,
+          linkedinUrl: parsed.linkedinUrl || prev.linkedinUrl,
+          portfolioUrl: parsed.portfolioUrl || prev.portfolioUrl
+        }));
+        
+        setParsedData(parsed);
+        toast.success('✨ Resume parsed successfully! Fields auto-filled.');
+      }
+    } catch (error) {
+      console.error('Resume parsing error:', error);
+      toast.info('📄 Resume uploaded. Auto-fill unavailable, please fill manually.');
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     
     if (!file) return;
@@ -50,6 +93,9 @@ const ApplicationForm = ({ jobId, jobTitle, onClose, onSuccess }) => {
 
     setResumeFile(file);
     setResumeFileName(file.name);
+    
+    // Trigger resume parsing
+    await handleResumeUpload(file);
   };
 
   const handleSubmit = async (e) => {
@@ -97,7 +143,7 @@ const ApplicationForm = ({ jobId, jobTitle, onClose, onSuccess }) => {
       submitData.append('resume', resumeFile);
 
       // Get API URL
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
       // Submit application
       const response = await fetch(`${API_URL}/applications/apply/${jobId}`, {
@@ -251,9 +297,30 @@ const ApplicationForm = ({ jobId, jobTitle, onClose, onSuccess }) => {
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
                   required
+                  disabled={parsing}
                   style={{ display: 'none' }}
                 />
               </label>
+              
+              {/* Parsing Indicator */}
+              {parsing && (
+                <div className="parsing-indicator">
+                  <span className="spinner-small"></span>
+                  <span>🤖 Parsing resume and auto-filling fields...</span>
+                </div>
+              )}
+              
+              {/* Parsed Skills Display */}
+              {parsedData?.skills && parsedData.skills.length > 0 && (
+                <div className="parsed-skills">
+                  <label className="skills-label">✨ Detected Skills:</label>
+                  <div className="skills-chips">
+                    {parsedData.skills.slice(0, 10).map((skill, index) => (
+                      <span key={index} className="skill-chip">{skill}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

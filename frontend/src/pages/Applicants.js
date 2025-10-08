@@ -61,7 +61,9 @@ const Applicants = () => {
 
       if (response.data.success) {
         toast.success('Status updated successfully');
+        // Refresh both applications list AND stats counts
         fetchApplications();
+        fetchStats();
         if (selectedApplication && selectedApplication._id === applicationId) {
           setSelectedApplication(response.data.data);
         }
@@ -129,7 +131,7 @@ const Applicants = () => {
       {/* Header */}
       <div className="applicants-header">
         <div className="header-content">
-          <button onClick={() => navigate('/job-posting')} className="back-btn">
+          <button onClick={() => navigate('/job-postings')} className="back-btn">
             ← Back to Jobs
           </button>
           <h1>Applications</h1>

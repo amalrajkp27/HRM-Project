@@ -18,7 +18,7 @@ const PublicJobView = () => {
       
       try {
         // Fetch from public API (no auth required)
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
         const response = await fetch(`${API_URL}/jobs/public/${jobId}`);
         const data = await response.json();
         

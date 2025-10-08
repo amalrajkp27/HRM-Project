@@ -494,7 +494,7 @@ const getJobApplicationStats = async (req, res) => {
     // Get status counts for this job
     const statusCounts = await Application.aggregate([
       {
-        $match: { job: mongoose.Types.ObjectId(jobId) }
+        $match: { job: new mongoose.Types.ObjectId(jobId) }
       },
       {
         $group: {
@@ -528,6 +528,48 @@ const getJobApplicationStats = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get resume download URL for an application
+ * @route   GET /api/applications/:id/resume
+ * @access  Private (Recruiter only)
+ */
+const getResumeUrl = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    if (!application.resume || !application.resume.fileUrl) {
+      return res.status(404).json({
+        success: false,
+        message: 'No resume found for this application'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        resumeUrl: application.resume.fileUrl,
+        fileName: application.resume.fileName,
+        fileType: application.resume.fileType,
+        fileSize: application.resume.fileSize
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching resume URL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch resume URL'
+    });
+  }
+};
+
 module.exports = {
   submitApplication,
   getApplicationsByJob,
@@ -538,5 +580,6 @@ module.exports = {
   rateApplication,
   deleteApplication,
   getApplicationStats,
-  getJobApplicationStats
+  getJobApplicationStats,
+  getResumeUrl
 };

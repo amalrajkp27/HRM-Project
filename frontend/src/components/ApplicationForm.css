@@ -342,6 +342,80 @@
   }
 }
 
+/* Parsing Indicator */
+.parsing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  margin-top: 12px;
+  color: #1e40af;
+  font-size: 14px;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Parsed Skills */
+.parsed-skills {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+}
+
+.skills-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 12px;
+}
+
+.skills-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #86efac;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #166534;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.skill-chip:hover {
+  background: #dcfce7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(22, 101, 52, 0.1);
+}
+
+/* Auto-filled Field Highlight */
+.form-group input.auto-filled,
+.form-group select.auto-filled {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
 /* Scrollbar Styling */
 .application-form-container::-webkit-scrollbar {
   width: 8px;
