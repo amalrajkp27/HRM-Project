@@ -620,6 +620,33 @@ const getResumeUrl = async (req, res) => {
   }
 };
 
+// Proxy resume file for inline viewing
+const viewResume = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id);
+
+    if (!application || !application.resume || !application.resume.fileUrl) {
+      return res.status(404).send('Resume not found');
+    }
+
+    const axios = require('axios');
+    
+    // Fetch the PDF from Cloudinary
+    const response = await axios.get(application.resume.fileUrl, {
+      responseType: 'arraybuffer'
+    });
+
+    // Set headers for inline viewing instead of download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    res.send(Buffer.from(response.data));
+
+  } catch (error) {
+    console.error('Error proxying resume:', error);
+    res.status(500).send('Error loading resume');
+  }
+};
+
 module.exports = {
   submitApplication,
   getApplicationsByJob,
@@ -631,5 +658,6 @@ module.exports = {
   deleteApplication,
   getApplicationStats,
   getJobApplicationStats,
-  getResumeUrl
+  getResumeUrl,
+  viewResume
 };

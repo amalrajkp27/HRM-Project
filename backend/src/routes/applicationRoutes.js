@@ -13,13 +13,15 @@ const {
   deleteApplication,
   getApplicationStats,
   getJobApplicationStats,
-  getResumeUrl
+  getResumeUrl,
+  viewResume
 } = require('../controllers/applicationController');
 const { parseResumeFile } = require('../controllers/resumeParserController');
 
 // Public routes
 router.post('/parse-resume', upload.single('resume'), parseResumeFile);
 router.post('/apply/:jobId', upload.single('resume'), submitApplication);
+router.get('/:id/view-resume', viewResume); // View resume inline (proxy with correct headers) - Public for iframe
 
 // Protected routes (require authentication)
 router.use(protect);

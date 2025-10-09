@@ -1,0 +1,40 @@
+
+> hrm-backend@1.0.0 start
+> node server.js
+
+✅ .env file loaded
+🌐 PORT from .env: 5001
+🦙 Using Ollama AI Service
+☁️  Cloudinary Configuration:
+   Cloud Name: ✅ dfge0tlnn
+   API Key: ✅ 7922***
+   API Secret: ✅ ***gtbg
+🦙 Interview Service using Ollama AI
+🦙 Resume Parser using Ollama AI
+🦙 AI Matching using Ollama AI
+(node:47399) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47399) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:47399) [MONGOOSE] Warning: Duplicate schema index on {"job":1,"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+🚀 Server is running on 0.0.0.0:5001
+MongoDB Connected: ac-wbdfrod-shard-00-01.k5pwswi.mongodb.net
+
+> hrm-backend@1.0.0 start
+> node server.js
+
+✅ .env file loaded
+🌐 PORT from .env: 5001
+🦙 Using Ollama AI Service
+☁️  Cloudinary Configuration:
+   Cloud Name: ✅ dfge0tlnn
+   API Key: ✅ 7922***
+   API Secret: ✅ ***gtbg
+🦙 Interview Service using Ollama AI
+🦙 Resume Parser using Ollama AI
+🦙 AI Matching using Ollama AI
+(node:48327) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48327) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:48327) [MONGOOSE] Warning: Duplicate schema index on {"job":1,"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+🚀 Server is running on 0.0.0.0:5001
+MongoDB Connected: ac-wbdfrod-shard-00-01.k5pwswi.mongodb.net

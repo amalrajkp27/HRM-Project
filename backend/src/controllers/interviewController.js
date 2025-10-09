@@ -1,7 +1,6 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 const { scoreAnswer, calculateOverallScore } = require('../services/interviewService');
-const { sendApplicationStatusEmail } = require('../services/emailService');
 
 /**
  * @desc    Get interview by token (Public)
@@ -210,47 +209,6 @@ const submitInterview = async (req, res) => {
 
     console.log('✅ Interview submission complete');
     console.log('================================');
-
-    // Send status update email (non-blocking)
-    const candidateName = `${application.firstName} ${application.lastName}`;
-    const candidateEmail = application.email;
-    const jobTitle = application.job.jobTitle;
-    const companyName = process.env.COMPANY_NAME || 'Our Company';
-
-    if (overallResult.passed) {
-      // Send "moved to reviewing" email
-      console.log(`📧 Sending "reviewing" status email to ${candidateName} (${candidateEmail})`);
-      sendApplicationStatusEmail(
-        candidateEmail,
-        candidateName,
-        jobTitle,
-        'reviewing',
-        companyName
-      ).then(result => {
-        if (result.success) {
-          console.log('✅ Status email sent successfully');
-        } else {
-          console.error('❌ Status email failed:', result.error);
-        }
-      }).catch(err => console.error('❌ Email error:', err));
-    } else {
-      // Send rejection email
-      console.log(`📧 Sending "rejected" status email to ${candidateName} (${candidateEmail})`);
-      sendApplicationStatusEmail(
-        candidateEmail,
-        candidateName,
-        jobTitle,
-        'rejected',
-        companyName,
-        'Unfortunately, you did not meet the minimum requirements for the pre-screening interview. We appreciate your interest and wish you the best in your job search.'
-      ).then(result => {
-        if (result.success) {
-          console.log('✅ Rejection email sent successfully');
-        } else {
-          console.error('❌ Rejection email failed:', result.error);
-        }
-      }).catch(err => console.error('❌ Email error:', err));
-    }
 
     // Return results
     res.status(200).json({

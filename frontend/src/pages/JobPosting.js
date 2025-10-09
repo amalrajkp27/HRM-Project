@@ -22,6 +22,10 @@ const JobPosting = () => {
   const [bestCandidates, setBestCandidates] = useState(null);
   const [showBestCandidates, setShowBestCandidates] = useState(false);
   
+  // Auto-Fetch Candidates State
+  const [autoFetching, setAutoFetching] = useState(false);
+  const [autoFetchingJobId, setAutoFetchingJobId] = useState(null);
+  
   console.log('JobPosting Component State:', { 
     analyzing, 
     analyzingJobId, 
@@ -314,6 +318,38 @@ const JobPosting = () => {
     }
   };
 
+  // Auto-Fetch Candidates from GitHub
+  const handleAutoFetchCandidates = async (job) => {
+    setAutoFetching(true);
+    setAutoFetchingJobId(job._id);
+    
+    try {
+      toast.info(`🔍 Searching GitHub for ${job.jobTitle} candidates... This may take 30-60 seconds.`);
+      
+      const response = await api.post(`/auto-fetch/jobs/${job._id}/fetch`);
+      
+      if (response.data.success) {
+        const { totalSaved } = response.data;
+        toast.success(`🎉 Successfully fetched ${totalSaved} fresh candidates from GitHub!`);
+        
+        // Navigate to Applicants page with auto-fetched tab
+        navigate(`/applicants/job/${job._id}?tab=auto-fetched`);
+      }
+    } catch (error) {
+      console.error('Error auto-fetching candidates:', error);
+      if (error.response?.status === 404) {
+        toast.error(error.response.data.message || 'No candidates found. Try adjusting job location or skills.');
+      } else if (error.response?.status === 401) {
+        toast.error('GitHub API authentication failed. Please check configuration.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to fetch candidates. Please try again.');
+      }
+    } finally {
+      setAutoFetching(false);
+      setAutoFetchingJobId(null);
+    }
+  };
+
   return (
     <div className="job-posting-container">
       {/* Header */}
@@ -456,6 +492,18 @@ const JobPosting = () => {
                       onClick={() => handleViewApplicants(job._id)}
                     >
                       View Applicants
+                    </button>
+                    <button
+                      className="action-btn auto-fetch-btn"
+                      onClick={() => handleAutoFetchCandidates(job)}
+                      disabled={autoFetching && autoFetchingJobId === job._id}
+                      title="Auto-fetch candidates from GitHub"
+                    >
+                      {autoFetching && autoFetchingJobId === job._id ? (
+                        <>🔄 Fetching...</>
+                      ) : (
+                        <>🤖 Auto-Fetch</>
+                      )}
                     </button>
                     {console.log('Job applicants:', job.jobTitle, job.applicants)}
                     {job.applicants > 0 && (

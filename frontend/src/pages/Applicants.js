@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 import './Applicants.css';
@@ -7,16 +7,29 @@ import './Applicants.css';
 const Applicants = () => {
   const navigate = useNavigate();
   const { jobId } = useParams(); // Optional: filter by specific job
+  const [searchParams] = useSearchParams();
+  
+  // Tab state - check URL parameter for initial tab
+  const initialTab = searchParams.get('tab') || 'applications';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   const [applications, setApplications] = useState([]);
+  const [autoFetchedCandidates, setAutoFetchedCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [stats, setStats] = useState(null);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState('');
 
   useEffect(() => {
-    fetchApplications();
-    fetchStats();
-  }, [jobId, filterStatus]);
+    if (activeTab === 'applications') {
+      fetchApplications();
+      fetchStats();
+    } else if (activeTab === 'auto-fetched') {
+      fetchAutoFetchedCandidates();
+    }
+  }, [jobId, filterStatus, activeTab]);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -50,6 +63,29 @@ const Applicants = () => {
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  // Fetch auto-fetched candidates
+  const fetchAutoFetchedCandidates = async () => {
+    setLoading(true);
+    try {
+      const endpoint = jobId 
+        ? `/auto-fetch/jobs/${jobId}/candidates`
+        : '/auto-fetch/candidates';
+      
+      const response = await api.get(endpoint);
+      if (response.data.success) {
+        setAutoFetchedCandidates(response.data.candidates || []);
+      }
+    } catch (error) {
+      console.error('Error fetching auto-fetched candidates:', error);
+      if (error.response?.status !== 404) {
+        toast.error('Failed to load auto-fetched candidates');
+      }
+      setAutoFetchedCandidates([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,6 +138,18 @@ const Applicants = () => {
     }
   };
 
+  const handleViewResume = (applicationId) => {
+    // Use our backend proxy endpoint that serves PDF with inline headers
+    const proxyUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/applications/${applicationId}/view-resume`;
+    setResumeUrl(proxyUrl);
+    setShowResumeModal(true);
+  };
+
+  const handleCloseResumeModal = () => {
+    setShowResumeModal(false);
+    setResumeUrl('');
+  };
+
   const getStatusBadgeClass = (status) => {
     const statusClasses = {
       pending: 'status-pending',
@@ -139,8 +187,24 @@ const Applicants = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
+      {/* Tabs */}
+      <div className="applicants-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'applications' ? 'active' : ''}`}
+          onClick={() => setActiveTab('applications')}
+        >
+          📝 Applications ({applications.length})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'auto-fetched' ? 'active' : ''}`}
+          onClick={() => setActiveTab('auto-fetched')}
+        >
+          🤖 Auto-Fetched ({autoFetchedCandidates.length})
+        </button>
+      </div>
+
+      {/* Stats Cards - Only show for applications tab AND when there are applications */}
+      {activeTab === 'applications' && stats && applications.length > 0 && (
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon">📊</div>
@@ -168,24 +232,27 @@ const Applicants = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="filter-group">
-          <label>Filter by Status</label>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="reviewing">Reviewing</option>
-            <option value="shortlisted">Shortlisted</option>
-            <option value="interview-scheduled">Interview Scheduled</option>
-            <option value="rejected">Rejected</option>
-            <option value="hired">Hired</option>
-          </select>
-        </div>
-      </div>
+      {/* Content based on active tab */}
+      {activeTab === 'applications' ? (
+        <>
+          {/* Filters */}
+          <div className="filters-section">
+            <div className="filter-group">
+              <label>Filter by Status</label>
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="interview-scheduled">Interview Scheduled</option>
+                <option value="rejected">Rejected</option>
+                <option value="hired">Hired</option>
+              </select>
+            </div>
+          </div>
 
-      {/* Applications List */}
-      <div className="applications-content">
+          {/* Applications List */}
+          <div className="applications-content">
         {loading ? (
           <div className="loading-state">
             <div className="spinner"></div>
@@ -261,14 +328,13 @@ const Applicants = () => {
                   >
                     View Details
                   </button>
-                  <a
-                    href={application.resume.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
                     className="btn btn-outline btn-sm"
+                    onClick={() => handleViewResume(application._id)}
+                    title="View Resume"
                   >
-                    📄 Resume
-                  </a>
+                    👁️ View Resume
+                  </button>
                   <select
                     className="status-select"
                     value={application.status}
@@ -286,7 +352,125 @@ const Applicants = () => {
             ))}
           </div>
         )}
-      </div>
+          </div>
+        </>
+      ) : (
+        /* Auto-Fetched Candidates Tab */
+        <div className="auto-fetched-content">
+          {loading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Loading candidates...</p>
+            </div>
+          ) : autoFetchedCandidates.length === 0 ? (
+            <div className="empty-state">
+              <h3>🤖 No Auto-Fetched Candidates Yet</h3>
+              <p>Click "Auto-Fetch" button on a job card to automatically find candidates from GitHub.</p>
+              <button
+                className="btn btn-primary"
+                onClick={() => navigate('/job-postings')}
+              >
+                Go to Jobs
+              </button>
+            </div>
+          ) : (
+            <div className="candidates-grid">
+              {autoFetchedCandidates.map((candidate) => (
+                <div key={candidate._id} className="candidate-card">
+                  <div className="candidate-header">
+                    <div className="candidate-info">
+                      <div className="candidate-avatar">
+                        {candidate.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3>{candidate.name}</h3>
+                        <p className="candidate-email">{candidate.email || 'No email'}</p>
+                      </div>
+                    </div>
+                    <div className="ai-score-badge">
+                      <span className="score">{candidate.aiScore || 0}/100</span>
+                      <span className="label">AI Match</span>
+                    </div>
+                  </div>
+
+                  <div className="candidate-details">
+                    <div className="detail-row">
+                      <span className="detail-label">Source:</span>
+                      <span className="detail-value">{candidate.source}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Location:</span>
+                      <span className="detail-value">{candidate.location || 'Not specified'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Company:</span>
+                      <span className="detail-value">{candidate.currentCompany || 'Not specified'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Skills:</span>
+                      <span className="detail-value skills-list">
+                        {candidate.skills && candidate.skills.length > 0 
+                          ? candidate.skills.slice(0, 5).join(', ') 
+                          : 'Not specified'}
+                      </span>
+                    </div>
+                    {candidate.githubStats && (
+                      <div className="detail-row">
+                        <span className="detail-label">GitHub:</span>
+                        <span className="detail-value">
+                          {candidate.githubStats.publicRepos} repos, {candidate.githubStats.followers} followers
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {candidate.matchAnalysis && (
+                    <div className="match-analysis">
+                      <strong>Match Analysis:</strong>
+                      <p>{candidate.matchAnalysis}</p>
+                    </div>
+                  )}
+
+                  {candidate.strengths && candidate.strengths.length > 0 && (
+                    <div className="candidate-strengths">
+                      <strong>✅ Strengths:</strong>
+                      <ul>
+                        {candidate.strengths.map((strength, idx) => (
+                          <li key={idx}>{strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="candidate-actions">
+                    {candidate.profileUrl && (
+                      <a
+                        href={candidate.profileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                      >
+                        View GitHub Profile
+                      </a>
+                    )}
+                    {candidate.email && !candidate.contacted && (
+                      <button
+                        className="btn btn-primary btn-sm"
+                        title="Send outreach email (coming soon)"
+                      >
+                        📧 Contact
+                      </button>
+                    )}
+                    {candidate.contacted && (
+                      <span className="contacted-badge">✅ Contacted</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Application Details Modal */}
       {selectedApplication && (
@@ -389,15 +573,58 @@ const Applicants = () => {
 
               <div className="detail-section">
                 <h3>📄 Resume</h3>
+                <div className="resume-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleViewResume(selectedApplication._id)}
+                  >
+                    👁️ View Resume
+                  </button>
+                  <a
+                    href={selectedApplication.resume.fileUrl}
+                    download={selectedApplication.resume.fileName}
+                    className="btn btn-outline"
+                  >
+                    📥 Download Resume
+                  </a>
+                </div>
+                <p className="resume-filename">
+                  📎 {selectedApplication.resume.fileName}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Viewer Modal */}
+      {showResumeModal && (
+        <div className="modal-overlay" onClick={handleCloseResumeModal}>
+          <div className="resume-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>📄 Resume Viewer</h2>
+              <div className="modal-header-actions">
                 <a
-                  href={selectedApplication.resume.fileUrl}
+                  href={resumeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-primary"
+                  className="btn btn-sm btn-outline"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  📥 Download Resume ({selectedApplication.resume.fileName})
+                  Open in New Tab
                 </a>
+                <button className="close-btn" onClick={handleCloseResumeModal}>
+                  ✕
+                </button>
               </div>
+            </div>
+            <div className="resume-viewer">
+              <iframe
+                src={resumeUrl}
+                type="application/pdf"
+                className="resume-iframe"
+                title="Resume PDF Viewer"
+              />
             </div>
           </div>
         </div>

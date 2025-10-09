@@ -27,7 +27,9 @@ const uploadToCloudinary = (fileBuffer, fileName, folder = 'hrm-resumes') => {
         // IMPORTANT: Don't use use_filename or unique_filename when setting custom public_id
         // Otherwise Cloudinary will ignore our public_id and generate its own!
         use_filename: false,
-        unique_filename: false
+        unique_filename: false,
+        // Set flags to allow inline viewing instead of forcing download
+        flags: 'attachment:false'
       },
       (error, result) => {
         if (error) {

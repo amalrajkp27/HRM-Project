@@ -251,6 +251,23 @@
   background: #0284c7;
 }
 
+.auto-fetch-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: white;
+  font-weight: 700;
+}
+
+.auto-fetch-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.auto-fetch-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .edit-btn {
   background: #f59e0b;
   color: white;

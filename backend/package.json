@@ -18,6 +18,7 @@
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
+    "bull": "^4.16.5",
     "cloudinary": "^1.41.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -26,7 +27,9 @@
     "mammoth": "^1.11.0",
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.7",
+    "octokit": "^5.0.3",
     "pdf-parse": "^2.2.0"
   },
   "devDependencies": {

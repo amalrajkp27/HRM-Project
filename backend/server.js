@@ -33,6 +33,7 @@ app.use('/api/jobs', require('./src/routes/jobRoutes'));
 app.use('/api/applications', require('./src/routes/applicationRoutes'));
 app.use('/api/matching', require('./src/routes/matchingRoutes'));
 app.use('/api/interview', require('./src/routes/interviewRoutes')); // Public interview routes
+app.use('/api/auto-fetch', require('./src/routes/autoFetchRoutes')); // Auto-fetch candidates feature
 
 // Health check route
 app.get('/health', (req, res) => {
